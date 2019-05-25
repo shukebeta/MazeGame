@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Maze Game</string>
+    <string name="stage_list">Select a stage</string>
+    <string name="stage1">Stage 1</string>
+    <string name="stage2">Stage 2</string>
+    <string name="restart_button">Restart</string>
+    <string name="undo_button">Undo</string>
+    <string name="sound_effect_checkbox">Sound Effect</string>
+    <string name="save_game">Save</string>
+    <string name="load_game">Load</string>
+</resources>
