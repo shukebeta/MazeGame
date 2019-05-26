@@ -43,7 +43,7 @@ class EyeballTest {
      16. !the symbol must be one of six predefined different colours
      17. !the symbol must be one of six predefined different shapes
      18. !the sprite cannot move backwards
-     19. !the sprite cannot travel blank squares
+     19. !the sprite cannot travel nocolour_blank squares
      20. !the sprite can and only can move forwards, move towards left and  move towards right with the same symbol
      21. !the sprite can and only can move forwards, move towards left and move towards right with the same colour
      */
@@ -335,12 +335,12 @@ class EyeballTest {
         assertFalse(s.walkTo(4,1));
     }
 
-    @Test //the sprite cannot travel blank squares
+    @Test //the sprite cannot travel nocolour_blank squares
     void testCannotTravelBlankPiece() {
         GameMap m = new GameMap(1);
         Sprite s = new Sprite(m);
 
-        // 5,0 is a blank piece
+        // 5,0 is a nocolour_blank piece
         assertTrue(m.getPiece(5, 0).isBlank());
         assertFalse(s.walkTo(5, 0));
     }
@@ -406,7 +406,7 @@ class EyeballTest {
         GameMap m = new GameMap(1);
         Sprite s = new Sprite(m);
 
-        // 0,0 is a blank tile
+        // 0,0 is a nocolour_blank tile
         assertTrue(m.getPiece(0,0).isTile());
     }
 

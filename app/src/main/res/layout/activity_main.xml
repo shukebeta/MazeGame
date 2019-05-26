@@ -32,18 +32,22 @@
         android:layout_height="42dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="16dp"
+        android:onClick="undoClick"
         android:text="@string/undo_button"
+        android:visibility="visible"
         app:layout_constraintBaseline_toBaselineOf="@+id/btn_stage1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/button"
-        tools:text="@string/undo_button" />
+        app:layout_constraintStart_toEndOf="@+id/btn_save"
+        tools:text="@string/undo_button"
+        tools:visibility="visible" />
 
     <Button
         android:id="@+id/btn_stage2"
         android:layout_width="wrap_content"
         android:layout_height="42dp"
         android:layout_marginStart="8dp"
+        android:onClick="onClickStage2"
         android:text="@string/stage2"
         app:layout_constraintStart_toEndOf="@+id/btn_stage1"
         app:layout_constraintTop_toBottomOf="@+id/lbl_select_stage"
@@ -79,6 +83,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="4dp"
         android:text="@string/restart_button"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="@string/restart_button" />
@@ -98,11 +103,12 @@
         app:layout_constraintTop_toTopOf="@+id/lbl_select_stage" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btn_save"
         android:layout_width="wrap_content"
         android:layout_height="42dp"
         android:layout_marginStart="16dp"
         android:text="@string/save_game"
+        android:visibility="invisible"
         app:layout_constraintStart_toEndOf="@+id/btn_stage2"
         app:layout_constraintTop_toBottomOf="@+id/lbl_select_stage" />
 
@@ -114,13 +120,15 @@
         app:layout_constraintGuide_begin="399dp" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/btn_load"
         android:layout_width="165dp"
         android:layout_height="42dp"
         android:text="@string/load_game"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/btn_restart"
         app:layout_constraintStart_toStartOf="@+id/tableLayout"
         app:layout_constraintTop_toTopOf="@+id/btn_restart"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="1.0"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,5 +1,7 @@
 package ara.bc282.assignment1.zhong;
 
+import android.util.Log;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,6 +20,8 @@ public class Sprite {
         map = aMap;
         currentDirection = Directions.NORTH;
         currentPiece = map.getStartPoint();
+        currentPiece.setSpriteDirection(currentDirection);
+
         startTime = new Timestamp((new Date()).getTime());
         walkedPieceList = new ArrayList<>();
         walkedPieceList.add(currentPiece);
@@ -69,6 +73,7 @@ public class Sprite {
                 case WEST:
                     allowMove = nextDirection != Directions.EAST;
             }
+            Log.d(currentDirection.toString(), "|" + nextDirection.toString());
         } else {
             allowMove = false;
         }
@@ -126,9 +131,13 @@ public class Sprite {
         return false;
     }
 
+    public boolean canUndo() {
+        return walkedPieceList.size() > 1;
+    }
+
     // undoWalk is walkBack
     public boolean undoWalk() {
-        if (walkedPieceList.size() > 1) {
+        if (canUndo()) {
             delay(delayTime);
             // delete current piece
             walkedPieceList.remove(walkedPieceList.get(walkedPieceList.size() - 1));

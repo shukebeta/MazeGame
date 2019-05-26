@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class GameMap {
-    private Piece[][] map;
+    public Piece[][] map;
 
     private static final Piece[][][] mapList;
 
