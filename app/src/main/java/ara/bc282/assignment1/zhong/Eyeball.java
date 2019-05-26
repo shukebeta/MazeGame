@@ -7,6 +7,7 @@ public class Eyeball implements Game {
     public void start(int stage) {
         currentMap = new GameMap(stage);
         sprite = new Sprite(currentMap);
+
     }
 
     public void restart() {

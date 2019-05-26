@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "604152983234",
+    "firebase_url": "https://eyeball-363b9.firebaseio.com",
+    "project_id": "eyeball-363b9",
+    "storage_bucket": "eyeball-363b9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:604152983234:android:dccb13203c64faf4",
+        "android_client_info": {
+          "package_name": "com.shukebeta.zhong.mazegame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "604152983234-usp4dukrsk06n9soqmoln74b3sf82qdn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaCIs_RCIpXfj0l1qU7vdkbPB0WNK5yHw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "604152983234-usp4dukrsk06n9soqmoln74b3sf82qdn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

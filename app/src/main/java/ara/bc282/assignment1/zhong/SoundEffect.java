@@ -3,9 +3,9 @@ package ara.bc282.assignment1.zhong;
 public class SoundEffect {
 
     private static boolean soundOn = true;
-    private final static String WARNING = "./sounds/450617__breviceps__8-bit-time-s-up.wav";
-    private final static String SUCCEED_MOVE = "./sounds/448265__henryrichard__sfx-correct.wav";
-    private final static String CONGRATULATIONS = "./sounds/433702__dersuperanton__congratulations-deep-voice.wav";
+    private final static String WARNING = "./sounds/warning.wav";
+    private final static String SUCCEED_MOVE = "./sounds/succeed.wav";
+    private final static String CONGRATULATIONS = "./sounds/congratulations.wav";
 
 
     private static void play(String sndFile) {
