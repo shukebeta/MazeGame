@@ -7,13 +7,16 @@ import androidx.constraintlayout.widget.ConstraintSet;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -23,9 +26,8 @@ import java.util.TimerTask;
 
 import ara.bc282.assignment1.zhong.Directions;
 import ara.bc282.assignment1.zhong.Eyeball;
+import ara.bc282.assignment1.zhong.GameMap;
 import ara.bc282.assignment1.zhong.Piece;
-import ara.bc282.assignment1.zhong.Sprite;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,51 +46,33 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        checkVisible(INIT);
-        //soundOn = setSoundOn(findViewById(R.id.cb_sound_effect));
-        //tl.removeAllViews();
+        drawStage(0);
+        setSoundOn(findViewById(R.id.cb_sound_effect));
     }
 
-    private void checkVisible(int period) {
+    private void setBtnStatus(boolean canUndo) {
         checkLoadBtn();
-        switch (period) {
-            case INIT:
-                int[] needHide = {
-                        R.id.btn_save,
-                        R.id.btn_undo,
-                        R.id.btn_restart,
-                };
-                for (int btnId : needHide) {
-                    View btn = findViewById(btnId);
-                    btn.setVisibility(View.INVISIBLE);
-                }
-                break;
-            case RUNNING:
-                Log.d("test", currentGame.sprite.canUndo() ? "can" : "cannot");
-                if (currentGame.sprite.canUndo()) {
-                    int[] needShow = {
-                            R.id.btn_save,
-                            R.id.btn_undo,
-                            R.id.btn_restart,
-                    };
-                    for (int btnId : needShow) {
-                        View btn = findViewById(btnId);
-                        btn.setVisibility(View.VISIBLE);
-                    }
-                }
-                break;
-            case WIN:
-            case FAIL:
-                int[] needH = {
-                        R.id.btn_save,
-                        R.id.btn_undo,
-                };
-                for (int btnId : needH) {
-                    View btn = findViewById(btnId);
-                    btn.setVisibility(View.INVISIBLE);
-                }
-                break;
-            default:
+        if (canUndo) {
+            int[] needShow = {
+                    R.id.btn_save,
+                    R.id.btn_undo,
+                    R.id.btn_restart,
+                    R.id.btn_show_solution,
+            };
+            for (int btnId : needShow) {
+                View btn = findViewById(btnId);
+                btn.setVisibility(View.VISIBLE);
+            }
+        } else {
+            int[] needHide = {
+                    R.id.btn_undo,
+                    R.id.btn_restart,
+                    R.id.btn_save,
+            };
+            for (int btnId : needHide) {
+                View btn = findViewById(btnId);
+                btn.setVisibility(View.INVISIBLE);
+            }
         }
     }
 
@@ -99,14 +83,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickStage1(View view) {
-        drawStage(0, view);
+        drawStage(0);
     }
 
     public void onClickStage2(View view) {
-        drawStage(1, view);
+        drawStage(1);
     }
 
-    private void drawStage(int stageNum, View view) {
+    private void drawStage(int stageNum) {
+        Button[] stageBtnList = {
+                (Button)findViewById(R.id.btn_stage1),
+                (Button)findViewById(R.id.btn_stage2)
+        };
+
+        for(int i = 0; i < stageBtnList.length; i++) {
+            Button b = stageBtnList[i];
+            if (i == stageNum) {
+                b.setPaintFlags(b.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            } else {
+                b.setPaintFlags(b.getPaintFlags() & (~Paint.UNDERLINE_TEXT_FLAG));
+            }
+        }
+
         currentGame = new Eyeball();
         currentGame.start(stageNum);
 
@@ -126,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             tr.setId(id);
 
             for (int col = 0; col < currentGame.currentMap.map[row].length; col++) {
-                ImageButton btn = new ImageButton(this);
+                ImageView btn = new ImageView(this);
                 int btnId = View.generateViewId();
                 btn.setId(btnId);
                 viewIdList[row][col] = btnId;
@@ -139,16 +137,19 @@ public class MainActivity extends AppCompatActivity {
                 /* Add Button to row. */
                 if (p.isStartPoint()) {
                     int spriteRes = getGameResource("eyesu");
-                    setSpriteOnPiece(btn, shapeRes, spriteRes);
+                    setMergedBitmapOnPiece(btn, shapeRes, spriteRes);
                 } else if (p.isGoal()) {
                     int goalRes = getGameResource("goal");
-                    setSpriteOnPiece(btn, shapeRes, goalRes);
+                    setMergedBitmapOnPiece(btn, shapeRes, goalRes);
                 } else {
                     btn.setImageResource(shapeRes);
                 }
                 btn.setClickable(true);
                 btn.setOnClickListener(this::shapeClick);
-                btn.setPadding(0,0,0,0);
+
+                btn.setPadding(-2,-2,-2,-2);
+                btn.setCropToPadding(false);
+                btn.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 btn.setBackground(null);
                 tr.addView(btn);
             }
@@ -161,6 +162,8 @@ public class MainActivity extends AppCompatActivity {
             constraintSet.constrainWidth(tr.getId(), ConstraintSet.WRAP_CONTENT);
         }
         constraintSet.applyTo(mainLayout);
+        setBtnStatus(false);
+        updateTotalMove();
     }
 
     private int getGameResource(String r) {
@@ -172,27 +175,23 @@ public class MainActivity extends AppCompatActivity {
         return getGameResource(r);
     }
 
-    private void setSpriteOnPiece(ImageButton btn, int shapeRes, int otherRes) {
-        Bitmap shape = BitmapFactory.decodeResource(getResources(), shapeRes);
-        Bitmap sprite = BitmapFactory.decodeResource(getResources(), otherRes);
-        Bitmap mergedImages = createSingleImageFromMultipleImages(shape, sprite);
-        btn.setImageBitmap(mergedImages);
-    }
-
-    // https://inducesmile.com/android-programming/how-to-combine-multiple-images-to-a-single-image-in-android/
-    private Bitmap createSingleImageFromMultipleImages(Bitmap firstImage, Bitmap secondImage) {
-        Bitmap result = Bitmap.createBitmap(secondImage.getWidth(), secondImage.getHeight(), secondImage.getConfig());
+    private void setMergedBitmapOnPiece(ImageView btn, int res, int ... resources) {
+        Bitmap b = BitmapFactory.decodeResource(getResources(), res);
+        Bitmap result = Bitmap.createBitmap(b.getWidth(), b.getHeight(), b.getConfig());;
         Canvas canvas = new Canvas(result);
-        canvas.drawBitmap(firstImage, 0f, 0f, null);
-        canvas.drawBitmap(secondImage, 0f, 0f, null);
-        return result;
+        canvas.drawBitmap(b, 0f, 0f, null);
+        for(int i = 0; i < resources.length; i++) {
+            b = BitmapFactory.decodeResource(getResources(), resources[i]);
+            canvas.drawBitmap(b, 0f, 0f, null);
+        }
+        btn.setImageBitmap(result);
     }
 
     public void shapeClick(View view) {
         Piece p = (Piece)view.getTag();
 
         Piece previousP = currentGame.sprite.currentPiece;
-        ImageButton previousI = findViewById(viewIdList[previousP.x][previousP.y]);
+        ImageView previousI = findViewById(viewIdList[previousP.x][previousP.y]);
         if (currentGame.sprite.walkTo(p.x, p.y)) {
             succeed();
 
@@ -200,16 +199,21 @@ public class MainActivity extends AppCompatActivity {
             // remove sprite from previous btn image
             previousI.setImageResource(res);
             // draw sprite on current piece
-            setSpriteOnPiece((ImageButton)view,
-                    getGameResource(currentGame.sprite.currentPiece),
-                    getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
-            );
             if (p.isGoal()) {
+                setBtnStatus(false);
+                setMergedBitmapOnPiece((ImageView)view,
+                        getGameResource(currentGame.sprite.currentPiece),
+                        getGameResource("goal"),
+                        getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
+                );
                 congratulations();
-                checkVisible(WIN);
                 // todo: show can do list
             } else {
-                checkVisible(RUNNING);
+                setMergedBitmapOnPiece((ImageView)view,
+                        getGameResource(currentGame.sprite.currentPiece),
+                        getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
+                );
+                setBtnStatus(currentGame.sprite.canUndo());
             }
             updateTotalMove();
         } else {
@@ -219,27 +223,31 @@ public class MainActivity extends AppCompatActivity {
             if (p.isGoal()) {
                 shadow = "xgoal";
             }
-            setSpriteOnPiece((ImageButton)view,
+            setMergedBitmapOnPiece((ImageView)view,
                     getGameResource(p),
                     getGameResource(shadow)
             );
 
-            // https://blog.csdn.net/maoyuanming0806/article/details/77088520
-            // https://stackoverflow.com/questions/5161951/android-only-the-original-thread-that-created-a-view-hierarchy-can-touch-its-vi
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    runOnUiThread(() -> {
-                        // Stuff that updates the UI
-                        if (p.isGoal()) {
-                            setSpriteOnPiece((ImageButton) view, getGameResource(p), getGameResource("goal"));
-                        } else {
-                            ((ImageButton) view).setImageResource(getGameResource(p));
-                        }
-                    });
+            setTimeout(() -> {
+                // Stuff that updates the UI
+                if (p.isGoal()) {
+                    setMergedBitmapOnPiece((ImageView) view, getGameResource(p), getGameResource("goal"));
+                } else {
+                    ((ImageView) view).setImageResource(getGameResource(p));
                 }
-            }, 1000);
+            }, 1);
         }
+    }
+
+    // https://blog.csdn.net/maoyuanming0806/article/details/77088520
+    // https://stackoverflow.com/questions/5161951/android-only-the-original-thread-that-created-a-view-hierarchy-can-touch-its-vi
+    private void setTimeout(Runnable r, int seconds) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(r);
+            }
+        }, seconds * 1000);
     }
 
     private String getEyesByDirection(Directions d) {
@@ -258,15 +266,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void undoClick(View view) {
         Piece previousP = currentGame.sprite.currentPiece;
-        ImageButton previousI = findViewById(viewIdList[previousP.x][previousP.y]);
+        ImageView previousI = findViewById(viewIdList[previousP.x][previousP.y]);
         if (currentGame.sprite.undoWalk()) {
             succeed();
-            int res = getGameResource(previousP);
+            int shapeRes = getGameResource(previousP);
             // remove sprite from previous btn image
-            previousI.setImageResource(res);
+            if (previousP.isGoal()) {
+                setMergedBitmapOnPiece(previousI, shapeRes, getGameResource("goal"));
+            } else {
+                previousI.setImageResource(shapeRes);
+            }
             // draw sprite on current piece
             Piece p = currentGame.sprite.currentPiece;
-            setSpriteOnPiece((ImageButton)findViewById(viewIdList[p.x][p.y]),
+            setMergedBitmapOnPiece((ImageView)findViewById(viewIdList[p.x][p.y]),
                     getGameResource(currentGame.sprite.currentPiece),
                     getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
             );
@@ -275,25 +287,11 @@ public class MainActivity extends AppCompatActivity {
             warning();
             // todo: display a warning message
         }
-        checkVisible(RUNNING);
+        setBtnStatus(currentGame.sprite.canUndo());
     }
 
     public void restartClick(View view) {
-        Piece previousP = currentGame.sprite.currentPiece;
-        ImageButton previousI = findViewById(viewIdList[previousP.x][previousP.y]);
-        currentGame.restart();
-        int res = getGameResource(previousP);
-        // remove sprite from previous btn image
-        previousI.setImageResource(res);
-        // draw sprite on current piece
-        Piece p = currentGame.sprite.currentPiece;
-        setSpriteOnPiece((ImageButton)findViewById(viewIdList[p.x][p.y]),
-                getGameResource(currentGame.sprite.currentPiece),
-                getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
-        );
-        succeed();
-        checkVisible(INIT);
-        updateTotalMove();
+        drawStage(currentGame.currentStage);
     }
 
     private void congratulations() {
@@ -327,6 +325,38 @@ public class MainActivity extends AppCompatActivity {
             sTotalMove += totalMove;
         }
         ((TextView)findViewById(R.id.step_count)).setText(sTotalMove);
+    }
+
+
+    public void saveClick(View view) {
+        //first save:
+    }
+
+    public void showSolutionClick(View view) {
+        view.setClickable(false);
+        int stage = currentGame.currentStage;
+        int[][] solution = GameMap.solutionList[stage];
+        drawStage(stage);
+        int stepTotal = solution.length;
+        int stepPause = 1000;
+        int timeTotal = (stepTotal + 1) * stepPause;
+
+        // https://stackoverflow.com/questions/56324121/is-there-an-approach-which-can-delay-certain-seconds-between-every-function-call
+        new CountDownTimer(timeTotal, stepPause) {
+            int stepIndex = 0;
+            public void onTick(long timeRemain) {
+                int[] pos = solution[stepIndex];
+                ImageView v = (ImageView)findViewById(viewIdList[pos[0]][pos[1]]);
+                v.callOnClick();
+                stepIndex += 1;
+                Log.d("time remain:", "" + timeRemain / 1000);
+            }
+
+            public void onFinish() {
+                Log.d("final step", ":" + (stepIndex - 1));
+                view.setClickable(true);
+            }
+        }.start();
     }
 
 }

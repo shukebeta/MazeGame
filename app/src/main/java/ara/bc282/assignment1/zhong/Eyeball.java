@@ -2,12 +2,13 @@ package ara.bc282.assignment1.zhong;
 
 public class Eyeball implements Game {
     public GameMap currentMap;
+    public int currentStage;
     public Sprite sprite;
 
     public void start(int stage) {
         currentMap = new GameMap(stage);
+        currentStage = stage;
         sprite = new Sprite(currentMap);
-
     }
 
     public void restart() {
