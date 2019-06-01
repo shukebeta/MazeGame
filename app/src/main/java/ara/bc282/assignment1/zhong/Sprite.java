@@ -11,10 +11,13 @@ public class Sprite {
     public Piece currentPiece;
     public Directions currentDirection;
 
+
     private Timestamp startTime;
+
+
     private ArrayList<Piece> walkedPieceList;
 
-    private static int delayTime = 200;
+    private static int delayTime = 1;
 
     public Sprite(GameMap aMap) {
         map = aMap;
@@ -25,6 +28,14 @@ public class Sprite {
         startTime = new Timestamp((new Date()).getTime());
         walkedPieceList = new ArrayList<>();
         walkedPieceList.add(currentPiece);
+    }
+
+    public ArrayList<Piece> getWalkedPieceList() {
+        return walkedPieceList;
+    }
+
+    public void setWalkedPieceList(ArrayList<Piece> walkedPieceList) {
+        this.walkedPieceList = walkedPieceList;
     }
 
     public static int getDelayTime() {
@@ -51,9 +62,10 @@ public class Sprite {
           | 5,0 5,1 5,2 5,3
          row/x 0-5
          */
-        boolean allowMove = false;
         Piece p = map.getPiece(x, y);
+
         Directions nextDirection = currentDirection;
+        boolean allowMove = false;
         if (p.x == currentPiece.x || p.y == currentPiece.y) {
             if (p.x == currentPiece.x) {
                 nextDirection = (y > currentPiece.y ? Directions.EAST : Directions.WEST);
@@ -74,8 +86,6 @@ public class Sprite {
                     allowMove = nextDirection != Directions.EAST;
             }
             Log.d(currentDirection.toString(), "|" + nextDirection.toString());
-        } else {
-            allowMove = false;
         }
         return allowMove && (p.colour == currentPiece.colour || p.shape == currentPiece.shape);
     }
@@ -156,7 +166,16 @@ public class Sprite {
     }
 
     public long getCostTime() {
-        return (new Date().getTime() - startTime.getTime());
+        return new Date().getTime() - startTime.getTime();
+    }
+
+
+    public Timestamp getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Timestamp startTime) {
+        this.startTime = startTime;
     }
 
 }

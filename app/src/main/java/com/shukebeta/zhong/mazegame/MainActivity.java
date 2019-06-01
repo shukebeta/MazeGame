@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
+import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -12,6 +13,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,9 +22,17 @@ import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 
 import ara.bc282.assignment1.zhong.Directions;
 import ara.bc282.assignment1.zhong.Eyeball;
@@ -30,17 +40,13 @@ import ara.bc282.assignment1.zhong.GameMap;
 import ara.bc282.assignment1.zhong.Piece;
 
 public class MainActivity extends AppCompatActivity {
+    final int MAX_PLAY_TIME = 60000; // 60s
 
     public Eyeball currentGame;
     private int[][] viewIdList;
 
     private boolean soundOn = true;
-
-
-    private final int INIT = 0;
-    private final int RUNNING = 1;
-    private final int WIN = 2;
-    private final int FAIL = 3;
+    private Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,23 +83,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkLoadBtn() {
-        // todo check savedList.length
-        int visible = (true) ? View.VISIBLE : View.INVISIBLE;
-        findViewById(R.id.btn_load).setVisibility(visible);
+        EyeBallDatabase eyeBallDatabase= EyeBallDatabase.getInstance(this);
+        EyeBallDao dao = eyeBallDatabase.eyeBallDao();
+
+        CompletableFuture
+                .supplyAsync(() -> dao.getTotal() > 0)
+                .thenAccept((i) -> runOnUiThread(() -> {
+                    int visible = i ? View.VISIBLE : View.INVISIBLE;
+                    findViewById(R.id.btn_load).setVisibility(visible);
+                }));
     }
 
-    public void onClickStage1(View view) {
+    public void stage1Click(View view) {
         drawStage(0);
     }
 
-    public void onClickStage2(View view) {
+    public void stage2Click(View view) {
         drawStage(1);
     }
 
     private void drawStage(int stageNum) {
+        if (timer != null) {
+            timer.cancel();
+        }
         Button[] stageBtnList = {
-                (Button)findViewById(R.id.btn_stage1),
-                (Button)findViewById(R.id.btn_stage2)
+                findViewById(R.id.btn_stage1),
+                findViewById(R.id.btn_stage2)
         };
 
         for(int i = 0; i < stageBtnList.length; i++) {
@@ -114,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(mainLayout);
 
-        /* Find Tablelayout defined in main.xml */
+        /* Find TableLayout defined in main.xml */
         TableLayout tl = findViewById(R.id.tableLayout);
         tl.removeAllViews();
         for (int row = 0; row < currentGame.currentMap.map.length; row++) {
@@ -163,7 +178,15 @@ public class MainActivity extends AppCompatActivity {
         }
         constraintSet.applyTo(mainLayout);
         setBtnStatus(false);
-        updateTotalMove();
+
+        timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(() -> updateTotalMove());
+            }
+        };
+        timer.schedule(task,1000,1000);
     }
 
     private int getGameResource(String r) {
@@ -177,11 +200,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setMergedBitmapOnPiece(ImageView btn, int res, int ... resources) {
         Bitmap b = BitmapFactory.decodeResource(getResources(), res);
-        Bitmap result = Bitmap.createBitmap(b.getWidth(), b.getHeight(), b.getConfig());;
+        Bitmap result = Bitmap.createBitmap(b.getWidth(), b.getHeight(), b.getConfig());
         Canvas canvas = new Canvas(result);
         canvas.drawBitmap(b, 0f, 0f, null);
-        for(int i = 0; i < resources.length; i++) {
-            b = BitmapFactory.decodeResource(getResources(), resources[i]);
+        for (int resource : resources) {
+            b = BitmapFactory.decodeResource(getResources(), resource);
             canvas.drawBitmap(b, 0f, 0f, null);
         }
         btn.setImageBitmap(result);
@@ -192,6 +215,11 @@ public class MainActivity extends AppCompatActivity {
 
         Piece previousP = currentGame.sprite.currentPiece;
         ImageView previousI = findViewById(viewIdList[previousP.x][previousP.y]);
+        if (previousP.x == p.x && previousP.y == p.y) {
+            warning();
+            Toast.makeText(this, "You cannot move to yourself.", Toast.LENGTH_LONG).show();
+            return;
+        }
         if (currentGame.sprite.walkTo(p.x, p.y)) {
             succeed();
 
@@ -200,14 +228,15 @@ public class MainActivity extends AppCompatActivity {
             previousI.setImageResource(res);
             // draw sprite on current piece
             if (p.isGoal()) {
+                timer.cancel();
                 setBtnStatus(false);
                 setMergedBitmapOnPiece((ImageView)view,
-                        getGameResource(currentGame.sprite.currentPiece),
-                        getGameResource("goal"),
-                        getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
+                    getGameResource(currentGame.sprite.currentPiece),
+                    getGameResource("goal"),
+                    getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
                 );
                 congratulations();
-                // todo: show can do list
+                showChoiceList("What would you like to do next?");
             } else {
                 setMergedBitmapOnPiece((ImageView)view,
                         getGameResource(currentGame.sprite.currentPiece),
@@ -227,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
                     getGameResource(p),
                     getGameResource(shadow)
             );
+            Toast.makeText(this, "You can only move to the piece which is in the same colour or same shape while it is in the same row or same column.", Toast.LENGTH_SHORT).show();
 
             setTimeout(() -> {
                 // Stuff that updates the UI
@@ -235,19 +265,57 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     ((ImageView) view).setImageResource(getGameResource(p));
                 }
-            }, 1);
+            }, 1000);
         }
+    }
+
+    private void showChoiceList(String title) {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+
+        // add a list
+        String[] choiceList;
+        if (currentGame.currentStage == 1) {
+            choiceList = new String[] {
+                    "Replay Current Stage",
+                    "Replay Stage 1"
+            };
+        } else {
+            choiceList = new String[] {
+                    "Replay Current Stage",
+                    "Play Stage 2"
+            };
+        }
+        builder.setItems(choiceList, (dialog, which) -> {
+            switch (which) {
+                case 0: // replay current stage
+                    restartClick(findViewById(R.id.btn_restart));
+                    break;
+                case 1: // play another stage
+                    if (currentGame.currentStage == 0) {
+                        drawStage(1);
+                    } else {
+                        drawStage(0);
+                    }
+                    break;
+            }
+        });
+
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     // https://blog.csdn.net/maoyuanming0806/article/details/77088520
     // https://stackoverflow.com/questions/5161951/android-only-the-original-thread-that-created-a-view-hierarchy-can-touch-its-vi
-    private void setTimeout(Runnable r, int seconds) {
+    private void setTimeout(Runnable r, int millseconds) {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 runOnUiThread(r);
             }
-        }, seconds * 1000);
+        }, millseconds);
     }
 
     private String getEyesByDirection(Directions d) {
@@ -278,14 +346,14 @@ public class MainActivity extends AppCompatActivity {
             }
             // draw sprite on current piece
             Piece p = currentGame.sprite.currentPiece;
-            setMergedBitmapOnPiece((ImageView)findViewById(viewIdList[p.x][p.y]),
+            setMergedBitmapOnPiece(findViewById(viewIdList[p.x][p.y]),
                     getGameResource(currentGame.sprite.currentPiece),
                     getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
             );
             updateTotalMove();
         } else {
             warning();
-            // todo: display a warning message
+            Toast.makeText(this, "You have got the start point, cannot undo anymore.", Toast.LENGTH_SHORT).show();
         }
         setBtnStatus(currentGame.sprite.canUndo());
     }
@@ -324,12 +392,124 @@ public class MainActivity extends AppCompatActivity {
         if (totalMove > 0) {
             sTotalMove += totalMove;
         }
+        if (!getCostTime().equals("")) {
+            sTotalMove += " " + getCostTime();
+        }
         ((TextView)findViewById(R.id.step_count)).setText(sTotalMove);
+        if (currentGame.sprite.getCostTime() > MAX_PLAY_TIME) {
+            timer.cancel();
+            showChoiceList("Timeout...you failed, what would you like to do next?");
+        }
     }
 
-
     public void saveClick(View view) {
-        //first save:
+        String progressName = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Calendar.getInstance().getTime());
+        String gameStage = String.valueOf(currentGame.currentStage);
+        EyeBallProgress aRec = new EyeBallProgress(1, progressName, gameStage, String.valueOf(currentGame.sprite.getCostTime()), walkedPiece2String());
+
+        EyeBallDatabase eyeBallDatabase= EyeBallDatabase.getInstance(this);
+        EyeBallDao dao = eyeBallDatabase.eyeBallDao();
+
+        CompletableFuture
+                .runAsync(dao::clear)
+                .thenRunAsync(() -> dao.insert(aRec))
+                .thenRun(() -> runOnUiThread(
+                        () -> Toast.makeText(this, "Eyeball progress saved.", Toast.LENGTH_SHORT).show()));
+    }
+
+    private void recoverImage(Piece piece) {
+        int shapeRes = getGameResource(piece);
+        ImageView p = findViewById(viewIdList[piece.x][piece.y]);
+        p.setImageResource(shapeRes);
+    }
+
+    public void loadClick(View view) {
+        EyeBallDatabase eyeBallDatabase= EyeBallDatabase.getInstance(this);
+        EyeBallDao dao = eyeBallDatabase.eyeBallDao();
+        CompletableFuture.supplyAsync(() -> dao.get(1)).thenAcceptAsync(aRec ->
+            runOnUiThread(() -> {
+                drawStage(Integer.valueOf(aRec.getGameStage()));
+                currentGame.sprite.setStartTime(new Timestamp((new Date()).getTime() - Integer.valueOf(aRec.getGameCostTime())));
+                currentGame.sprite.setWalkedPieceList(string2WalkedPieceList(aRec.getWalkedPieceList()));
+                currentGame.sprite.currentPiece = currentGame.sprite.getWalkedPieceList().get(currentGame.sprite.getWalkedPieceList().size() - 1);
+                currentGame.sprite.currentDirection = currentGame.sprite.currentPiece.getSpriteDirection();
+                // recover start point image
+                recoverImage(currentGame.sprite.getWalkedPieceList().get(0));
+                //
+                int shapeRes = getGameResource(currentGame.sprite.currentPiece);
+                int spriteRes = getGameResource(getEyesByDirection(currentGame.sprite.currentDirection));
+                ImageView btn = findViewById(viewIdList[currentGame.sprite.currentPiece.x][currentGame.sprite.currentPiece.y]);
+                setMergedBitmapOnPiece(btn, shapeRes, spriteRes);
+                updateTotalMove();
+                Toast.makeText(this, "Eyeball record loaded.", Toast.LENGTH_SHORT).show();
+            })
+        );
+//
+//        dao.clear();
+//
+//        final List<String> listItems = dao.getAll();
+//        // 1. Instantiate an AlertDialog.Builder with its constructor
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+/*
+        // Where we track the selected items
+        final TextView result = findViewById(R.id.tvResult);
+
+        final CharSequence currentMsg = result.getText();
+
+        // 2. Chain together various setter methods to set the dialog characteristics
+        // Set the dialog title
+        builder.setTitle(R.string.dialog_title)
+                // https://developer.android.com/reference/android/app/AlertDialog.Builder#setSingleChoiceItems(int,%20int,%20android.content.DialogInterface.OnClickListener)
+                // Specify the list array, the items to be selected by default (-1 for none),
+                // and the listener through which to receive callbacks when items are selected
+                .setSingleChoiceItems(R.array.choice_array, selection, (dialog, which) -> {
+                    result.setText(listItems[which]);
+
+                    // with this, the following buttons will not be used any longer.
+                    // dialog.dismiss();
+                })
+                // Set the action buttons
+                .setPositiveButton(R.string.ok, (dialog, id) -> {
+                    // User clicked OK, so save the mSelectedItems results somewhere
+                    // or return them to the component that opened the dialog
+
+                    // show which item has been selected in the list
+                    selection = Arrays.asList(listItems).indexOf(result.getText());
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, (dialog, id) -> result.setText(currentMsg));
+
+        // 3. Get the AlertDialog from create()
+        AlertDialog dialog = builder.create();
+        dialog.show(); */
+    }
+
+    private String getCostTime() {
+        Date d = new Date(currentGame.sprite.getCostTime());
+        SimpleDateFormat df = new SimpleDateFormat("mm:ss", Locale.getDefault()); // HH for 0-23
+        return df.format(d);
+    }
+
+    private String walkedPiece2String() {
+        ArrayList<Piece> w = currentGame.sprite.getWalkedPieceList();
+        int len = w.size();
+        String[] res = new String[len];
+        for(int i=0; i<len; i++) {
+            Piece p =  w.get(i);
+            res[i] = p.x +"," + p.y + "," + p.getSpriteDirection().toString();
+        }
+        return TextUtils.join(":", res);
+    }
+
+    private ArrayList<Piece> string2WalkedPieceList(String walkedList) {
+        ArrayList<Piece> w = new ArrayList<>();
+        for( String s : TextUtils.split(walkedList, ":")) {
+            String[] p = TextUtils.split(s, ",");
+            Piece piece = currentGame.currentMap.getPiece(Integer.valueOf(p[0]), Integer.valueOf(p[1]));
+            piece.setSpriteDirection(Directions.valueOf(p[2]));
+            w.add(piece);
+        }
+        return w;
     }
 
     public void showSolutionClick(View view) {
@@ -346,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
             int stepIndex = 0;
             public void onTick(long timeRemain) {
                 int[] pos = solution[stepIndex];
-                ImageView v = (ImageView)findViewById(viewIdList[pos[0]][pos[1]]);
+                ImageView v = findViewById(viewIdList[pos[0]][pos[1]]);
                 v.callOnClick();
                 stepIndex += 1;
                 Log.d("time remain:", "" + timeRemain / 1000);
