@@ -40,7 +40,7 @@ import ara.bc282.assignment1.zhong.GameMap;
 import ara.bc282.assignment1.zhong.Piece;
 
 public class MainActivity extends AppCompatActivity {
-    final int MAX_PLAY_TIME = 60000; // 60s
+    final int MAX_PLAY_TIME = 120000; // 120s
 
     public Eyeball currentGame;
     private int[][] viewIdList;
@@ -398,7 +398,8 @@ public class MainActivity extends AppCompatActivity {
         ((TextView)findViewById(R.id.step_count)).setText(sTotalMove);
         if (currentGame.sprite.getCostTime() > MAX_PLAY_TIME) {
             timer.cancel();
-            showChoiceList("Timeout...you failed, what would you like to do next?");
+            warning();
+            showChoiceList("Timeout...You should have finished the stage in " + MAX_PLAY_TIME / 60000 + " minutes, what would you like to do next?");
         }
     }
 

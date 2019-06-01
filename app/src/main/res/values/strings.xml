@@ -9,4 +9,5 @@
     <string name="save_game">Save</string>
     <string name="load_game">Load</string>
     <string name="show_solution">Show Solution</string>
+    <string name="goal_count">Goal Count: 1</string>
 </resources>
