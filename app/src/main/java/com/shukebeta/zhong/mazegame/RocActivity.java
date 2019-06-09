@@ -54,6 +54,8 @@ public class RocActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_roc);
+        drawStage(0);
+        setSoundOn(findViewById(R.id.cb_sound_effect));
     }
 
 
@@ -383,9 +385,13 @@ public class RocActivity extends AppCompatActivity {
 
     private void play(String sound) {
         if (soundOn) {
-            Uri uri = Uri.parse("android.resource://" + getPackageName() + "/raw/" + sound);
-            MediaPlayer mediaPlayer = MediaPlayer.create(RocActivity.this, uri);
-            mediaPlayer.start();
+            try {
+                Uri uri = Uri.parse("android.resource://" + getPackageName() + "/raw/" + sound);
+                MediaPlayer mediaPlayer = MediaPlayer.create(RocActivity.this, uri);
+                mediaPlayer.start();
+            } catch( Exception e) {
+                Log.d("Sound error:", e.toString());
+            }
         }
     }
 

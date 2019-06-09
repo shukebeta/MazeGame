@@ -381,9 +381,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void play(String sound) {
         if (soundOn) {
-            Uri uri = Uri.parse("android.resource://" + getPackageName() + "/raw/" + sound);
-            MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, uri);
-            mediaPlayer.start();
+            try {
+                Uri uri = Uri.parse("android.resource://" + getPackageName() + "/raw/" + sound);
+                MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, uri);
+                mediaPlayer.start();
+            } catch( Exception e) {
+                Log.d("Sound error:", e.toString());
+            }
         }
     }
 
