@@ -5,7 +5,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -40,7 +39,7 @@ import ara.bc282.assignment1.zhong.Eyeball;
 import ara.bc282.assignment1.zhong.GameMap;
 import ara.bc282.assignment1.zhong.Piece;
 
-public class MainActivity extends AppCompatActivity {
+public class RocActivity extends AppCompatActivity {
     final int MAX_PLAY_TIME = 120000; // 120s
 
     public Eyeball currentGame;
@@ -52,10 +51,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        drawStage(0);
-        setSoundOn(findViewById(R.id.cb_sound_effect));
+        setContentView(R.layout.activity_roc);
     }
+
 
     private void setBtnStatus(boolean canUndo) {
         checkLoadBtn();
@@ -126,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         viewIdList = new int[currentGame.currentMap.map.length][currentGame.currentMap.map[0].length];
 
-        ConstraintLayout mainLayout = findViewById(R.id.maze_game);
+        ConstraintLayout mainLayout = findViewById(R.id.maze_game_R);
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(mainLayout);
 
@@ -232,9 +230,9 @@ public class MainActivity extends AppCompatActivity {
                 timer.cancel();
                 setBtnStatus(false);
                 setMergedBitmapOnPiece((ImageView)view,
-                    getGameResource(currentGame.sprite.currentPiece),
-                    getGameResource("goal"),
-                    getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
+                        getGameResource(currentGame.sprite.currentPiece),
+                        getGameResource("goal"),
+                        getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
                 );
                 congratulations();
                 showChoiceList("What would you like to do next?");
@@ -382,7 +380,7 @@ public class MainActivity extends AppCompatActivity {
     private void play(String sound) {
         if (soundOn) {
             Uri uri = Uri.parse("android.resource://" + getPackageName() + "/raw/" + sound);
-            MediaPlayer mediaPlayer = MediaPlayer.create(MainActivity.this, uri);
+            MediaPlayer mediaPlayer = MediaPlayer.create(RocActivity.this, uri);
             mediaPlayer.start();
         }
     }
@@ -429,23 +427,23 @@ public class MainActivity extends AppCompatActivity {
         EyeBallDatabase eyeBallDatabase= EyeBallDatabase.getInstance(this);
         EyeBallDao dao = eyeBallDatabase.eyeBallDao();
         CompletableFuture.supplyAsync(() -> dao.get(1)).thenAcceptAsync(aRec ->
-            runOnUiThread(() -> {
-                drawStage(Integer.valueOf(aRec.getGameStage()));
-                currentGame.sprite.setStartTime(new Timestamp((new Date()).getTime() - Integer.valueOf(aRec.getGameCostTime())));
-                currentGame.sprite.setWalkedPieceList(string2WalkedPieceList(aRec.getWalkedPieceList()));
-                currentGame.sprite.currentPiece = currentGame.sprite.getWalkedPieceList().get(currentGame.sprite.getWalkedPieceList().size() - 1);
-                currentGame.sprite.currentDirection = currentGame.sprite.currentPiece.getSpriteDirection();
-                // recover start point image
-                recoverImage(currentGame.sprite.getWalkedPieceList().get(0));
-                //
-                int shapeRes = getGameResource(currentGame.sprite.currentPiece);
-                int spriteRes = getGameResource(getEyesByDirection(currentGame.sprite.currentDirection));
-                ImageView btn = findViewById(viewIdList[currentGame.sprite.currentPiece.x][currentGame.sprite.currentPiece.y]);
-                setMergedBitmapOnPiece(btn, shapeRes, spriteRes);
-                updateTotalMove();
-                setBtnStatus(true);
-                Toast.makeText(this, "Eyeball record loaded.", Toast.LENGTH_SHORT).show();
-            })
+                runOnUiThread(() -> {
+                    drawStage(Integer.valueOf(aRec.getGameStage()));
+                    currentGame.sprite.setStartTime(new Timestamp((new Date()).getTime() - Integer.valueOf(aRec.getGameCostTime())));
+                    currentGame.sprite.setWalkedPieceList(string2WalkedPieceList(aRec.getWalkedPieceList()));
+                    currentGame.sprite.currentPiece = currentGame.sprite.getWalkedPieceList().get(currentGame.sprite.getWalkedPieceList().size() - 1);
+                    currentGame.sprite.currentDirection = currentGame.sprite.currentPiece.getSpriteDirection();
+                    // recover start point image
+                    recoverImage(currentGame.sprite.getWalkedPieceList().get(0));
+                    //
+                    int shapeRes = getGameResource(currentGame.sprite.currentPiece);
+                    int spriteRes = getGameResource(getEyesByDirection(currentGame.sprite.currentDirection));
+                    ImageView btn = findViewById(viewIdList[currentGame.sprite.currentPiece.x][currentGame.sprite.currentPiece.y]);
+                    setMergedBitmapOnPiece(btn, shapeRes, spriteRes);
+                    updateTotalMove();
+                    setBtnStatus(true);
+                    Toast.makeText(this, "Eyeball record loaded.", Toast.LENGTH_SHORT).show();
+                })
         );
     }
 
@@ -505,8 +503,5 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void rocHuangModelClick(View view) {
-        Intent intent = new Intent(this, RocActivity.class);
-        startActivity(intent);
-    }
+
 }

@@ -2,10 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/maze_game"
+    android:id="@+id/maze_game_R"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".RocActivity">
 
     <TextView
         android:id="@+id/lbl_select_stage"
@@ -25,19 +25,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/btn_roc_model"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="304dp"
-        android:layout_marginTop="4dp"
-        android:clickable="true"
-        android:onClick="rocHuangModelClick"
-        android:text="@string/roc_model"
-        android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/btn_stage1"
@@ -114,8 +101,7 @@
         android:text="@string/restart_button"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-         />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/btn_show_solution"
@@ -125,12 +111,11 @@
         android:text="@string/show_solution"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@+id/btn_load"
-        app:layout_constraintStart_toEndOf="@+id/btn_load"
-        app:layout_constraintEnd_toStartOf="@+id/btn_restart"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_restart"
+        app:layout_constraintStart_toEndOf="@+id/btn_load"
         app:layout_constraintTop_toTopOf="@+id/btn_load"
-        app:layout_constraintVertical_bias="0.5"
-         />
+        app:layout_constraintVertical_bias="0.5" />
 
     <CheckBox
         android:id="@+id/cb_sound_effect"
@@ -185,9 +170,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:text="@string/goal_count"
-        app:layout_constraintTop_toBottomOf="@+id/btn_stage1"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_stage1"
         app:layout_constraintVertical_bias="0.005" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
