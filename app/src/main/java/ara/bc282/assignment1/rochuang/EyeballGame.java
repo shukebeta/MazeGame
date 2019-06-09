@@ -2,7 +2,7 @@ package ara.bc282.assignment1.rochuang;
 
 public class EyeballGame implements IEyeBallGamePanel {
 	protected boolean isSoundOn;
-	protected GameGridIron gr;
+	public GameGridIron gr;
 	public Eyeball eb;
 	@Override
 	public void startGame(int newGameLevel) {

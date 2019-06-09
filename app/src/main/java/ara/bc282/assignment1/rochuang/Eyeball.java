@@ -7,10 +7,10 @@ import java.util.ArrayList;
 
 public class Eyeball {
 	private GameGridIron myGameGridIron;
-	private Piece myCurrentPiece;
-	private Timestamp myStartTime;
-	private Direction myCurrentDirection;
-	private ArrayList<Piece> myAllMovedPieces = new ArrayList<>();
+	public Piece myCurrentPiece;
+	public Timestamp myStartTime;
+	public Direction myCurrentDirection;
+	public ArrayList<Piece> myAllMovedPieces = new ArrayList<>();
 	
 	public Eyeball(GameGridIron newGameGridIron) {
 		this.myGameGridIron = newGameGridIron;
@@ -140,8 +140,8 @@ public class Eyeball {
 	public Piece getMyCurrentPiece() {
 		return this.myCurrentPiece;
 	}
-	public double getTotalMoveSpendingTime() {
-		return (getCurrentTime().getTime() - this.myStartTime.getTime());
+	public long getTotalMoveSpendingTime() {
+		return getCurrentTime().getTime() - this.myStartTime.getTime();
 	}
 	public int countTotalMove() {
 		return this.myAllMovedPieces.size()-1;

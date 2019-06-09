@@ -34,19 +34,21 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 
-import ara.bc282.assignment1.zhong.Directions;
-import ara.bc282.assignment1.zhong.Eyeball;
-import ara.bc282.assignment1.zhong.GameMap;
-import ara.bc282.assignment1.zhong.Piece;
+import ara.bc282.assignment1.rochuang.Direction;
+import ara.bc282.assignment1.rochuang.EyeballGame;
+import ara.bc282.assignment1.rochuang.GameGridIron;
+import ara.bc282.assignment1.rochuang.Piece;
 
 public class RocActivity extends AppCompatActivity {
     final int MAX_PLAY_TIME = 120000; // 120s
 
-    public Eyeball currentGame;
+    public EyeballGame currentGame;
     private int[][] viewIdList;
 
     private boolean soundOn = true;
     private Timer timer;
+
+    int currentStage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +104,7 @@ public class RocActivity extends AppCompatActivity {
     }
 
     private void drawStage(int stageNum) {
+        currentStage = stageNum;
         if (timer != null) {
             timer.cancel();
         }
@@ -119,10 +122,11 @@ public class RocActivity extends AppCompatActivity {
             }
         }
 
-        currentGame = new Eyeball();
-        currentGame.start(stageNum);
+        currentGame = new EyeballGame();
+        currentGame.startGame(stageNum);
+        Piece[][] currentMap = currentGame.gr.ALL_MAP_LISTS[currentStage];
 
-        viewIdList = new int[currentGame.currentMap.map.length][currentGame.currentMap.map[0].length];
+        viewIdList = new int[currentMap.length][currentMap[0].length];
 
         ConstraintLayout mainLayout = findViewById(R.id.maze_game_R);
         ConstraintSet constraintSet = new ConstraintSet();
@@ -131,28 +135,28 @@ public class RocActivity extends AppCompatActivity {
         /* Find TableLayout defined in main.xml */
         TableLayout tl = findViewById(R.id.tableLayout);
         tl.removeAllViews();
-        for (int row = 0; row < currentGame.currentMap.map.length; row++) {
+        for (int row = 0; row < currentMap.length; row++) {
             /* Create a new row to be added. */
             TableRow tr = new TableRow(this);
             int id = View.generateViewId();
             tr.setId(id);
-
-            for (int col = 0; col < currentGame.currentMap.map[row].length; col++) {
+            Log.d("hello:", "" + currentMap[row].length);
+            for (int col = 0; col < currentMap[row].length; col++) {
                 ImageView btn = new ImageView(this);
                 int btnId = View.generateViewId();
                 btn.setId(btnId);
                 viewIdList[row][col] = btnId;
 
-                Piece p = currentGame.currentMap.getPiece(row, col);
+                Piece p = currentGame.gr.findPieceInMap(row, col);
 
-                int shapeRes = getGameResource(p.colour.toString() + "_" + p.shape.toString());
+                int shapeRes = getGameResource(p.myColour.toString() + "_" + p.myShape.toString());
                 //Drawable res = ResourcesCompat.getDrawable(getResources(), imageResource, null);
                 btn.setTag(p);
                 /* Add Button to row. */
                 if (p.isStartPoint()) {
                     int spriteRes = getGameResource("eyesu");
                     setMergedBitmapOnPiece(btn, shapeRes, spriteRes);
-                } else if (p.isGoal()) {
+                } else if (p.isEndPoint()) {
                     int goalRes = getGameResource("goal");
                     setMergedBitmapOnPiece(btn, shapeRes, goalRes);
                 } else {
@@ -193,7 +197,7 @@ public class RocActivity extends AppCompatActivity {
     }
 
     private int getGameResource(Piece p) {
-        String r = p.colour.toString() + "_" + p.shape.toString();
+        String r = p.myColour.toString() + "_" + p.myShape.toString();
         return getGameResource(r);
     }
 
@@ -212,43 +216,43 @@ public class RocActivity extends AppCompatActivity {
     public void shapeClick(View view) {
         Piece p = (Piece)view.getTag();
 
-        Piece previousP = currentGame.sprite.currentPiece;
+        Piece previousP = currentGame.eb.myCurrentPiece;
         ImageView previousI = findViewById(viewIdList[previousP.x][previousP.y]);
         if (previousP.x == p.x && previousP.y == p.y) {
             warning();
             Toast.makeText(this, "You cannot move to yourself.", Toast.LENGTH_LONG).show();
             return;
         }
-        if (currentGame.sprite.walkTo(p.x, p.y)) {
+        if (currentGame.eb.moveToNextPieceSucceed(p.x, p.y)) {
             succeed();
 
             int res = getGameResource(previousP);
             // remove sprite from previous btn image
             previousI.setImageResource(res);
             // draw sprite on current piece
-            if (p.isGoal()) {
+            if (p.isEndPoint()) {
                 timer.cancel();
                 setBtnStatus(false);
                 setMergedBitmapOnPiece((ImageView)view,
-                        getGameResource(currentGame.sprite.currentPiece),
+                        getGameResource(currentGame.eb.myCurrentPiece),
                         getGameResource("goal"),
-                        getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
+                        getGameResource(getEyesByDirection(currentGame.eb.myCurrentDirection))
                 );
                 congratulations();
                 showChoiceList("What would you like to do next?");
             } else {
                 setMergedBitmapOnPiece((ImageView)view,
-                        getGameResource(currentGame.sprite.currentPiece),
-                        getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
+                        getGameResource(currentGame.eb.myCurrentPiece),
+                        getGameResource(getEyesByDirection(currentGame.eb.myCurrentDirection))
                 );
-                setBtnStatus(currentGame.sprite.canUndo());
+                setBtnStatus(currentGame.eb.countTotalMove() > 1);
             }
             updateTotalMove();
         } else {
             warning();
             //draw X on target piece
             String shadow = "bigx";
-            if (p.isGoal()) {
+            if (p.isEndPoint()) {
                 shadow = "xgoal";
             }
             setMergedBitmapOnPiece((ImageView)view,
@@ -259,7 +263,7 @@ public class RocActivity extends AppCompatActivity {
 
             setTimeout(() -> {
                 // Stuff that updates the UI
-                if (p.isGoal()) {
+                if (p.isEndPoint()) {
                     setMergedBitmapOnPiece((ImageView) view, getGameResource(p), getGameResource("goal"));
                 } else {
                     ((ImageView) view).setImageResource(getGameResource(p));
@@ -275,7 +279,7 @@ public class RocActivity extends AppCompatActivity {
 
         // add a list
         String[] choiceList;
-        if (currentGame.currentStage == 1) {
+        if (currentStage == 1) {
             choiceList = new String[] {
                     "Replay Current Stage",
                     "Replay Stage 1"
@@ -292,7 +296,7 @@ public class RocActivity extends AppCompatActivity {
                     restartClick(findViewById(R.id.btn_restart));
                     break;
                 case 1: // play another stage
-                    if (currentGame.currentStage == 0) {
+                    if (currentStage == 0) {
                         drawStage(1);
                     } else {
                         drawStage(0);
@@ -317,7 +321,7 @@ public class RocActivity extends AppCompatActivity {
         }, millseconds);
     }
 
-    private String getEyesByDirection(Directions d) {
+    private String getEyesByDirection(Direction d) {
         switch(d) {
             case SOUTH:
                 return "eyesd";
@@ -332,33 +336,33 @@ public class RocActivity extends AppCompatActivity {
     }
 
     public void undoClick(View view) {
-        Piece previousP = currentGame.sprite.currentPiece;
+        Piece previousP = currentGame.eb.myCurrentPiece;
         ImageView previousI = findViewById(viewIdList[previousP.x][previousP.y]);
-        if (currentGame.sprite.undoWalk()) {
+        if (currentGame.eb.moveBackPreviousPieceSucceed(previousP.x, previousP.y)) {
             succeed();
             int shapeRes = getGameResource(previousP);
             // remove sprite from previous btn image
-            if (previousP.isGoal()) {
+            if (previousP.isEndPoint()) {
                 setMergedBitmapOnPiece(previousI, shapeRes, getGameResource("goal"));
             } else {
                 previousI.setImageResource(shapeRes);
             }
             // draw sprite on current piece
-            Piece p = currentGame.sprite.currentPiece;
+            Piece p = currentGame.eb.myCurrentPiece;
             setMergedBitmapOnPiece(findViewById(viewIdList[p.x][p.y]),
-                    getGameResource(currentGame.sprite.currentPiece),
-                    getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
+                    getGameResource(currentGame.eb.myCurrentPiece),
+                    getGameResource(getEyesByDirection(currentGame.eb.myCurrentDirection))
             );
             updateTotalMove();
         } else {
             warning();
             Toast.makeText(this, "You have got the start point, cannot undo anymore.", Toast.LENGTH_SHORT).show();
         }
-        setBtnStatus(currentGame.sprite.canUndo());
+        setBtnStatus(currentGame.eb.countTotalMove() > 1);
     }
 
     public void restartClick(View view) {
-        drawStage(currentGame.currentStage);
+        drawStage(currentStage);
     }
 
     private void congratulations() {
@@ -386,7 +390,7 @@ public class RocActivity extends AppCompatActivity {
     }
 
     private void updateTotalMove() {
-        int totalMove = currentGame.sprite.getTotalMove();
+        int totalMove = currentGame.eb.countTotalMove();
         String sTotalMove = "";
         if (totalMove > 0) {
             sTotalMove += totalMove;
@@ -395,7 +399,7 @@ public class RocActivity extends AppCompatActivity {
             sTotalMove += " " + getCostTime();
         }
         ((TextView)findViewById(R.id.step_count)).setText(sTotalMove);
-        if (currentGame.sprite.getCostTime() > MAX_PLAY_TIME) {
+        if (currentGame.eb.getTotalMoveSpendingTime() > MAX_PLAY_TIME) {
             timer.cancel();
             warning();
             showChoiceList("Timeout...You should have finished the stage in " + MAX_PLAY_TIME / 60000 + " minutes, what would you like to do next?");
@@ -404,8 +408,8 @@ public class RocActivity extends AppCompatActivity {
 
     public void saveClick(View view) {
         String progressName = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Calendar.getInstance().getTime());
-        String gameStage = String.valueOf(currentGame.currentStage);
-        EyeBallProgress aRec = new EyeBallProgress(1, progressName, gameStage, String.valueOf(currentGame.sprite.getCostTime()), walkedPiece2String());
+        String gameStage = String.valueOf(currentStage);
+        EyeBallProgress aRec = new EyeBallProgress(1, progressName, gameStage, String.valueOf(currentGame.eb.getTotalMoveSpendingTime()), walkedPiece2String());
 
         EyeBallDatabase eyeBallDatabase= EyeBallDatabase.getInstance(this);
         EyeBallDao dao = eyeBallDatabase.eyeBallDao();
@@ -429,16 +433,16 @@ public class RocActivity extends AppCompatActivity {
         CompletableFuture.supplyAsync(() -> dao.get(1)).thenAcceptAsync(aRec ->
                 runOnUiThread(() -> {
                     drawStage(Integer.valueOf(aRec.getGameStage()));
-                    currentGame.sprite.setStartTime(new Timestamp((new Date()).getTime() - Integer.valueOf(aRec.getGameCostTime())));
-                    currentGame.sprite.setWalkedPieceList(string2WalkedPieceList(aRec.getWalkedPieceList()));
-                    currentGame.sprite.currentPiece = currentGame.sprite.getWalkedPieceList().get(currentGame.sprite.getWalkedPieceList().size() - 1);
-                    currentGame.sprite.currentDirection = currentGame.sprite.currentPiece.getSpriteDirection();
+                    currentGame.eb.myStartTime = new Timestamp((new Date()).getTime() - Integer.valueOf(aRec.getGameCostTime()));
+                    currentGame.eb.myAllMovedPieces = string2WalkedPieceList(aRec.getWalkedPieceList());
+                    currentGame.eb.myCurrentPiece = currentGame.eb.getMyAllMovedPieces().get(currentGame.eb.getMyAllMovedPieces().size() - 1);
+                    currentGame.eb.myCurrentDirection = currentGame.eb.myCurrentPiece.myDirection;
                     // recover start point image
-                    recoverImage(currentGame.sprite.getWalkedPieceList().get(0));
+                    recoverImage(currentGame.eb.getMyAllMovedPieces().get(0));
                     //
-                    int shapeRes = getGameResource(currentGame.sprite.currentPiece);
-                    int spriteRes = getGameResource(getEyesByDirection(currentGame.sprite.currentDirection));
-                    ImageView btn = findViewById(viewIdList[currentGame.sprite.currentPiece.x][currentGame.sprite.currentPiece.y]);
+                    int shapeRes = getGameResource(currentGame.eb.myCurrentPiece);
+                    int spriteRes = getGameResource(getEyesByDirection(currentGame.eb.myCurrentDirection));
+                    ImageView btn = findViewById(viewIdList[currentGame.eb.myCurrentPiece.x][currentGame.eb.myCurrentPiece.y]);
                     setMergedBitmapOnPiece(btn, shapeRes, spriteRes);
                     updateTotalMove();
                     setBtnStatus(true);
@@ -448,18 +452,18 @@ public class RocActivity extends AppCompatActivity {
     }
 
     private String getCostTime() {
-        Date d = new Date(currentGame.sprite.getCostTime());
+        Date d = new Date(currentGame.eb.getTotalMoveSpendingTime());
         SimpleDateFormat df = new SimpleDateFormat("mm:ss", Locale.getDefault()); // HH for 0-23
         return df.format(d);
     }
 
     private String walkedPiece2String() {
-        ArrayList<Piece> w = currentGame.sprite.getWalkedPieceList();
+        ArrayList<Piece> w = currentGame.eb.getMyAllMovedPieces();
         int len = w.size();
         String[] res = new String[len];
         for(int i=0; i<len; i++) {
             Piece p =  w.get(i);
-            res[i] = p.x +"," + p.y + "," + p.getSpriteDirection().toString();
+            res[i] = p.x +"," + p.y + "," + p.myDirection.toString();
         }
         return TextUtils.join(":", res);
     }
@@ -468,8 +472,8 @@ public class RocActivity extends AppCompatActivity {
         ArrayList<Piece> w = new ArrayList<>();
         for( String s : TextUtils.split(walkedList, ":")) {
             String[] p = TextUtils.split(s, ",");
-            Piece piece = currentGame.currentMap.getPiece(Integer.valueOf(p[0]), Integer.valueOf(p[1]));
-            piece.setSpriteDirection(Directions.valueOf(p[2]));
+            Piece piece = currentGame.gr.findPieceInMap(Integer.valueOf(p[0]), Integer.valueOf(p[1]));
+            piece.setDirection(Direction.valueOf(p[2]));
             w.add(piece);
         }
         return w;
@@ -477,8 +481,8 @@ public class RocActivity extends AppCompatActivity {
 
     public void showSolutionClick(View view) {
         view.setClickable(false);
-        int stage = currentGame.currentStage;
-        int[][] solution = GameMap.solutionList[stage];
+        int stage = currentStage;
+        int[][] solution = GameGridIron.ALL_SOLUTION_LISTS[stage];
         drawStage(stage);
         int stepTotal = solution.length;
         int stepPause = 1000;

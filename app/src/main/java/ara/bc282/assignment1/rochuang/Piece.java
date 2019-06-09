@@ -3,8 +3,8 @@ package ara.bc282.assignment1.rochuang;
 public class Piece {
 	//for blank piece
 	public PieceCharacter myCharacter;
-	protected Shape myShape;
-	protected Colour myColour;
+	public Shape myShape;
+	public Colour myColour;
 	public int x;
 	public int y;
 	public Direction myDirection;
