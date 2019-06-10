@@ -515,5 +515,8 @@ public class RocActivity extends AppCompatActivity {
     }
 
 
-
+    public void onStop() {
+        super.onStop();
+        timer.cancel();
+    }
 }

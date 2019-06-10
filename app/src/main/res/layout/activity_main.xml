@@ -29,14 +29,13 @@
     <Button
         android:id="@+id/btn_roc_model"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="304dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
         android:clickable="true"
         android:onClick="rocHuangModelClick"
         android:text="@string/roc_model"
-        android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cb_sound_effect"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -170,24 +169,24 @@
     <TextView
         android:id="@+id/step_count"
         android:layout_width="52dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="8dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
         android:text=""
-        app:layout_constraintBottom_toBottomOf="@+id/btn_undo"
-        app:layout_constraintStart_toEndOf="@+id/cb_sound_effect"
-        app:layout_constraintTop_toTopOf="@+id/cb_sound_effect"
-        app:layout_constraintVertical_bias="0.021" />
+        app:layout_constraintBottom_toBottomOf="@+id/goal_count"
+        app:layout_constraintStart_toEndOf="@+id/goal_count"
+        app:layout_constraintTop_toTopOf="@+id/btn_stage2"
+        app:layout_constraintVertical_bias="1.0" />
 
 
     <TextView
         android:id="@+id/goal_count"
         android:layout_width="102dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
         android:text="@string/goal_count"
-        app:layout_constraintTop_toBottomOf="@+id/btn_stage1"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.005" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_stage1"
+        app:layout_constraintVertical_bias="0.006" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

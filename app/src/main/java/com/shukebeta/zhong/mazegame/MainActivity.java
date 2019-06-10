@@ -512,6 +512,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void rocHuangModelClick(View view) {
+        timer.cancel();
         Intent intent = new Intent(this, RocActivity.class);
         startActivity(intent);
     }
