@@ -284,12 +284,14 @@ public class RocActivity extends AppCompatActivity {
         if (currentStage == 1) {
             choiceList = new String[] {
                     "Replay Current Stage",
-                    "Replay Stage 1"
+                    "Replay Stage 1",
+                    "I am ok"
             };
         } else {
             choiceList = new String[] {
                     "Replay Current Stage",
-                    "Play Stage 2"
+                    "Play Stage 2",
+                    "I am ok"
             };
         }
         builder.setItems(choiceList, (dialog, which) -> {
