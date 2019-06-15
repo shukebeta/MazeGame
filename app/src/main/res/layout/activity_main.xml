@@ -5,6 +5,7 @@
     android:id="@+id/maze_game"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:visibility="visible"
     tools:context=".MainActivity">
 
     <TextView
@@ -80,7 +81,7 @@
         android:layout_marginEnd="16dp"
         android:onClick="undoClick"
         android:text="@string/undo_button"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintBaseline_toBaselineOf="@+id/btn_stage1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -113,8 +114,7 @@
         android:text="@string/restart_button"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-         />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/btn_show_solution"
@@ -122,14 +122,13 @@
         android:layout_height="42dp"
         android:onClick="showSolutionClick"
         android:text="@string/show_solution"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/btn_load"
-        app:layout_constraintStart_toEndOf="@+id/btn_load"
-        app:layout_constraintEnd_toStartOf="@+id/btn_restart"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_restart"
+        app:layout_constraintStart_toEndOf="@+id/btn_load"
         app:layout_constraintTop_toTopOf="@+id/btn_load"
-        app:layout_constraintVertical_bias="0.5"
-         />
+        app:layout_constraintVertical_bias="0.5" />
 
     <CheckBox
         android:id="@+id/cb_sound_effect"
@@ -184,6 +183,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:text="@string/goal_count"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_stage1"

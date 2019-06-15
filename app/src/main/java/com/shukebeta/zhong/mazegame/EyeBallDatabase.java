@@ -1,7 +1,6 @@
 package com.shukebeta.zhong.mazegame;
 
 import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
@@ -15,14 +14,14 @@ public abstract class EyeBallDatabase extends RoomDatabase {
 
     private static final String DATABASE_NAME = "eyeball_db";
 
-    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+    private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE eyeball_progress ADD COLUMN gameCostTime TEXT");
         }
     };
 
-    public static EyeBallDatabase getInstance(final Context context) {
+    static EyeBallDatabase getInstance(final Context context) {
         if (INSTANCE == null) {
             synchronized (EyeBallDatabase.class) {
                 if (INSTANCE == null) {

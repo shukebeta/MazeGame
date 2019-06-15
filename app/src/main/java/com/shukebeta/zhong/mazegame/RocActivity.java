@@ -54,7 +54,7 @@ public class RocActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_roc);
-        drawStage(0);
+        //drawStage(0);
         setSoundOn(findViewById(R.id.cb_sound_effect));
     }
 
@@ -83,6 +83,11 @@ public class RocActivity extends AppCompatActivity {
                 btn.setVisibility(View.INVISIBLE);
             }
         }
+    }
+
+    private void setViewVisible(int viewId, Boolean visible) {
+        View v = findViewById(viewId);
+        v.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void checkLoadBtn() {
@@ -183,6 +188,11 @@ public class RocActivity extends AppCompatActivity {
         }
         constraintSet.applyTo(mainLayout);
         setBtnStatus(false);
+        setViewVisible(R.id.btn_show_solution, true);
+        setViewVisible(R.id.goal_count, true);
+
+        TextView v = findViewById(R.id.goal_count);
+        v.setText(getResources().getString(R.string.goal_count, 1));
 
         timer = new Timer();
         TimerTask task = new TimerTask() {
@@ -517,6 +527,8 @@ public class RocActivity extends AppCompatActivity {
 
     public void onStop() {
         super.onStop();
-        timer.cancel();
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 }

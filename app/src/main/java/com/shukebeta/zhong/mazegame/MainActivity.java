@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        drawStage(0);
+        //drawStage(0);
         setSoundOn(findViewById(R.id.cb_sound_effect));
     }
 
@@ -81,6 +81,16 @@ public class MainActivity extends AppCompatActivity {
                 btn.setVisibility(View.INVISIBLE);
             }
         }
+    }
+
+    /**
+     * add yet another setBtnStatus method to set view visible status
+     * @param viewId
+     * @param visible
+     */
+    private void setViewVisible(int viewId, Boolean visible) {
+        View v = findViewById(viewId);
+        v.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void checkLoadBtn() {
@@ -179,6 +189,11 @@ public class MainActivity extends AppCompatActivity {
         }
         constraintSet.applyTo(mainLayout);
         setBtnStatus(false);
+        setViewVisible(R.id.btn_show_solution, true);
+        setViewVisible(R.id.goal_count, true);
+
+        TextView v = findViewById(R.id.goal_count);
+        v.setText(getResources().getString(R.string.goal_count, currentGame.currentMap.getGoalList().size()));
 
         timer = new Timer();
         TimerTask task = new TimerTask() {
@@ -237,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
                     getGameResource(getEyesByDirection(currentGame.sprite.currentDirection))
                 );
                 congratulations();
-                showChoiceList("What would you like to do next?");
+                showChoiceList("You Win! What would you like to do next?");
             } else {
                 setMergedBitmapOnPiece((ImageView)view,
                         getGameResource(currentGame.sprite.currentPiece),
@@ -257,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
                     getGameResource(p),
                     getGameResource(shadow)
             );
-            Toast.makeText(this, "You can only move to the piece which is in the same colour or same shape while it is in the same row or same column.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You can only move forward, leftward, or rightward to the piece which is in the same colour or same shape while it is in the same row or same column.", Toast.LENGTH_SHORT).show();
 
             setTimeout(() -> {
                 // Stuff that updates the UI
@@ -406,23 +421,26 @@ public class MainActivity extends AppCompatActivity {
         if (currentGame.sprite.getCostTime() > MAX_PLAY_TIME) {
             timer.cancel();
             warning();
-            showChoiceList("Timeout...You should have finished the stage in " + MAX_PLAY_TIME / 60000 + " minutes, what would you like to do next?");
+            showChoiceList("Timeout...the max playtime for a stage is " + MAX_PLAY_TIME / 60000 + " minutes, please choose:");
         }
     }
 
     public void saveClick(View view) {
-        String progressName = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(Calendar.getInstance().getTime());
+        String progressName = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss",
+                Locale.getDefault()).format(Calendar.getInstance().getTime());
         String gameStage = String.valueOf(currentGame.currentStage);
-        EyeBallProgress aRec = new EyeBallProgress(1, progressName, gameStage, String.valueOf(currentGame.sprite.getCostTime()), walkedPiece2String());
+        EyeBallProgress aRec = new EyeBallProgress(1, progressName, gameStage,
+                String.valueOf(currentGame.sprite.getCostTime()), walkedPiece2String());
 
-        EyeBallDatabase eyeBallDatabase= EyeBallDatabase.getInstance(this);
+        EyeBallDatabase eyeBallDatabase = EyeBallDatabase.getInstance(this);
         EyeBallDao dao = eyeBallDatabase.eyeBallDao();
 
         CompletableFuture
                 .runAsync(dao::clear)
                 .thenRunAsync(() -> dao.insert(aRec))
                 .thenRun(() -> runOnUiThread(
-                        () -> Toast.makeText(this, "Eyeball progress saved.", Toast.LENGTH_SHORT).show()));
+                        () -> Toast.makeText(this, "Eyeball progress saved.",
+                                Toast.LENGTH_SHORT).show()));
     }
 
     private void recoverImage(Piece piece) {
@@ -432,7 +450,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadClick(View view) {
-        EyeBallDatabase eyeBallDatabase= EyeBallDatabase.getInstance(this);
+        EyeBallDatabase eyeBallDatabase = EyeBallDatabase.getInstance(this);
         EyeBallDao dao = eyeBallDatabase.eyeBallDao();
         CompletableFuture.supplyAsync(() -> dao.get(1)).thenAcceptAsync(aRec ->
             runOnUiThread(() -> {
@@ -512,7 +530,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void rocHuangModelClick(View view) {
-        timer.cancel();
+        if (timer != null) {
+            timer.cancel();
+        }
         Intent intent = new Intent(this, RocActivity.class);
         startActivity(intent);
     }
