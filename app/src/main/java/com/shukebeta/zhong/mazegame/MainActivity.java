@@ -376,6 +376,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void restartClick(View view) {
         drawStage(currentGame.currentStage);
+        Toast.makeText(this, "Restart succeed.", Toast.LENGTH_SHORT).show();
     }
 
     private void congratulations() {

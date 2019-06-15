@@ -257,7 +257,7 @@ public class RocActivity extends AppCompatActivity {
                         getGameResource(currentGame.eb.myCurrentPiece),
                         getGameResource(getEyesByDirection(currentGame.eb.myCurrentDirection))
                 );
-                setBtnStatus(currentGame.eb.countTotalMove() > 1);
+                setBtnStatus(currentGame.eb.countTotalMove() > 0);
             }
             updateTotalMove();
         } else {
@@ -372,11 +372,12 @@ public class RocActivity extends AppCompatActivity {
             warning();
             Toast.makeText(this, "You have got the start point, cannot undo anymore.", Toast.LENGTH_SHORT).show();
         }
-        setBtnStatus(currentGame.eb.countTotalMove() > 1);
+        setBtnStatus(currentGame.eb.countTotalMove() > 0);
     }
 
     public void restartClick(View view) {
         drawStage(currentStage);
+        Toast.makeText(this, "Restart succeed.", Toast.LENGTH_SHORT).show();
     }
 
     private void congratulations() {
