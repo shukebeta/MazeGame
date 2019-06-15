@@ -67,8 +67,7 @@ public class MainActivity extends AppCompatActivity {
                     R.id.btn_show_solution,
             };
             for (int btnId : needShow) {
-                View btn = findViewById(btnId);
-                btn.setVisibility(View.VISIBLE);
+                setViewVisible(btnId, true);
             }
         } else {
             int[] needHide = {
@@ -77,16 +76,15 @@ public class MainActivity extends AppCompatActivity {
                     R.id.btn_save,
             };
             for (int btnId : needHide) {
-                View btn = findViewById(btnId);
-                btn.setVisibility(View.INVISIBLE);
+                setViewVisible(btnId, false);
             }
         }
     }
 
     /**
      * add yet another setBtnStatus method to set view visible status
-     * @param viewId
-     * @param visible
+     * @param viewId View's resource Id
+     * @param visible true: display false: hide
      */
     private void setViewVisible(int viewId, Boolean visible) {
         View v = findViewById(viewId);
