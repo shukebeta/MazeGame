@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * add yet another setBtnStatus method to set view visible status
+     * according viewId set view visible status
      * @param viewId View's resource Id
      * @param visible true: display false: hide
      */
