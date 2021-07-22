@@ -507,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
         drawStage(stage);
         int stepTotal = solution.length;
         int stepPause = 1000;
-        int timeTotal = (stepTotal + 1) * stepPause;
+        int timeTotal = stepTotal * stepPause;
 
         // https://stackoverflow.com/questions/56324121/is-there-an-approach-which-can-delay-certain-seconds-between-every-function-call
         new CountDownTimer(timeTotal, stepPause) {
