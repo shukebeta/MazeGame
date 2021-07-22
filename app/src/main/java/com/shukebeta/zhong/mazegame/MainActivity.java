@@ -270,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
                     getGameResource(p),
                     getGameResource(shadow)
             );
-            Toast.makeText(this, "You can only move forward, leftward, or rightward to the piece which is in the same colour or same shape while it is in the same row or same column.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getResources().getString(R.string.cannot_move), Toast.LENGTH_SHORT).show();
 
             setTimeout(() -> {
                 // Stuff that updates the UI

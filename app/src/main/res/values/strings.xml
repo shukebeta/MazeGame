@@ -12,4 +12,5 @@
     <string name="goal_count">Goal Count: %1$d</string>
     <string name="roc_model">Roc Model</string>
     <string name="roc_activity_name">Maze Game in Roc Huang\'s Model</string>
+    <string name="cannot_move">You can only move forward, leftward, or rightward to the piece which is in the same colour or same shape while it is in the same row or same column.</string>
 </resources>
